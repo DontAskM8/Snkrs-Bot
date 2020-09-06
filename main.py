@@ -43,9 +43,6 @@ LOGGER = logging.getLogger()
 def run(driver, username, password, url, shoe_size, login_time=None, release_time=None,
         page_load_timeout=None, screenshot_path=None, html_path=None, select_payment=False, purchase=False,
         num_retries=None):
-    print(driver, username, password, url)
-    print(shoe_size, login_time, release_time,page_load_timeout, screenshot_path)
-    print(html_path, select_payment, purchase,num_retries)
     driver.maximize_window()
     driver.set_page_load_timeout(page_load_timeout)
 
@@ -68,6 +65,7 @@ def run(driver, username, password, url, shoe_size, login_time=None, release_tim
         try:
             try:
                 LOGGER.info("Requesting page: " + url)
+                driver.set_page_load_timeout(20)
                 driver.get(url)
             except TimeoutException:
                 LOGGER.info("Page load timed out but continuing anyway")
@@ -128,9 +126,11 @@ def run(driver, username, password, url, shoe_size, login_time=None, release_tim
 def login(driver, username, password):
     try:
         LOGGER.info("Requesting page: " + NIKE_HOME_URL)
+        driver.set_page_load_timeout(20)
         driver.get(NIKE_HOME_URL)
     except TimeoutException:
         LOGGER.info("Page load timed out but continuing anyway")
+        login(driver, username, password)
 
     #LOGGER.info("Waiting for login button to become clickable")
     #wait_until_clickable(driver=driver, xpath="//li[@js-hook='exp-join-login']/button")
@@ -262,11 +262,12 @@ if __name__ == "__main__":
         if sys.platform == "darwin":
             executable_path = "./bin/chromedriver_mac"
         elif "linux" in sys.platform:
-            executable_path = "./bin/chromedriver_linux"
+            executable_path = "./bin/chromedriver_rasp"
         else:
             # raise Exception("Unsupported operating system. Please add your own Selenium driver for it.")
-            driver = webdriver.Chrome(executable_path="./bin/chromedriver.exe", options=options)
-
+            executable_path="./bin/chromedriver.exe"
+        driver = webdriver.Chrome(executable_path=executable_path, options=options)
+    driver.set_page_load_timeout(20)
     run(driver=driver, username=args.username, password=args.password, url=args.url, shoe_size=args.shoe_size,
         login_time=args.login_time, release_time=args.release_time, page_load_timeout=args.page_load_timeout,
         screenshot_path=args.screenshot_path, html_path=args.html_path, select_payment=args.select_payment,
